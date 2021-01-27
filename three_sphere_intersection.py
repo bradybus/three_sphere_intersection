@@ -93,12 +93,7 @@ class Sphere:
         self.center = center_sigma * np.random.randn(3)
         self.radius = radius_sigma * np.abs(np.random.randn())
 
-    def check_intersection(self, other_sphere):
-        """
-        Checks to see if this sphere intersects with given `other_sphere`.
-        :param other_sphere:
-        :return:
-        """
+    def r0_is_bigger(self, other_sphere):
         r0 = other_sphere.radius
         c0 = other_sphere.center
         r1 = self.radius
@@ -106,6 +101,15 @@ class Sphere:
         if r1 > r0:
             r0, r1 = r1, r0
             c0, c1 = c1, c0
+        return r0, c0, r1, c1
+
+    def check_intersection(self, other_sphere):
+        """
+        Checks to see if this sphere intersects with given `other_sphere`.
+        :param other_sphere:
+        :return:
+        """
+        r0, c0, r1, c1 = self.r0_is_bigger(other_sphere)
         d = np.linalg.norm(c1 - c0)
         if d < r0:
             return r1 >= r0 - d
@@ -128,13 +132,7 @@ class Sphere:
         c, u, v are all 3d vectors, and
         x(t) is the 3d circle as a function of time.
         """
-        r0 = other_sphere.radius
-        c0 = other_sphere.center
-        r1 = self.radius
-        c1 = self.center
-        if r1 > r0:
-            r0, r1 = r1, r0
-            c0, c1 = c1, c0
+        r0, c0, r1, c1 = self.r0_is_bigger(other_sphere)
         n = c1 - c0
         d = np.linalg.norm(n)
         n_normed = n / d
