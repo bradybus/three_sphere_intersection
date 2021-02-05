@@ -8,6 +8,11 @@ Implements an analytic solution based on what is documented in above answer.
 
 import numpy as np
 
+def is_parallel(a, b):
+    a_unit = a / np.linalg.norm(a)
+    b_unit = b / np.linalg.norm(b)
+    parallel = abs(1 - np.dot(a_unit, b_unit)) < 1e-8
+    return parallel
 
 def get_spanning_vectors_of_3d_plane(n):
     """
@@ -22,9 +27,21 @@ def get_spanning_vectors_of_3d_plane(n):
     n = np.asarray(n)
     n = n / np.linalg.norm(n)
 
-    u = np.array([-n[1], n[0], 0])
+    i3 = np.array([1, 0, 0])
+    j3 = np.array([0, 1, 0])
+    k3 = np.array([0, 0, 1])
+
+    if not is_parallel(n, i3):
+        u = np.cross(n, i3)
+        v = np.cross(n, u)
+    elif not is_parallel(n, j3):
+        u = np.cross(n, j3)
+        v = np.cross(n, u)
+    elif not is_parallel(n, k3):
+        u = np.cross(n, k3)
+        v = np.cross(n, u)
+
     u = u / np.linalg.norm(u)
-    v = np.cross(n, u)
     v = v / np.linalg.norm(v)
 
     return u, v
@@ -132,16 +149,15 @@ class Sphere:
         c, u, v are all 3d vectors, and
         x(t) is the 3d circle as a function of time.
         """
-        r0, c0, r1, c1 = self.r0_is_bigger(other_sphere)
         n = c1 - c0
         d = np.linalg.norm(n)
         n_normed = n / d
 
         u, v = get_spanning_vectors_of_3d_plane(n_normed)
 
-        x = (r1 * r1 - r0 * r0 + d * d) / (2 * d)
-        c = c0 + n_normed * (d - x)
-        h = np.sqrt(r1 * r1 - x * x)
+        x = (r0 * r0 - r1 * r1 + d * d) / (2 * d)
+        c = c0 + n_normed * x
+        h = np.sqrt(r0 * r0 - x * x)
         return h, c, u, v
 
     def check_point_is_on_sphere(self, x):
